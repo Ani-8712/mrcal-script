@@ -1,24 +1,100 @@
+dos2unix mrcal.sh
+echo "
+
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                .   
+                  .                                                                                 
+                                         .                                                          
+                                                                                                    
+               .                                                                                    
+                                  .                              .                                  
+                                                                                                 .  
+                     @@@@@@@@@@@@@*. -%@@@@@@@@@@@@@@@@@@@@@@* +@@@@@@@@@@@@@@@@@@@@@@@.            
+                     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@. +@@@@@@@@@@@@@@@@@@@@@@.             
+                     ----------@@@@@@@@@@--------------@@@@@@. +@@@@@%********@@@@@@%               
+                        .######@@@@@@@@@@#######*-.   .@@@@@#  +@@@@@+      .@@@@@@+                
+                        .@@@@@@@@@@@@@@@@@@@@@@@@@@*  %@@@@@@%%@@@@@@@.    .@@@@@@-                 
+                        .++++++@@@@@@@@@@*+++++@@@@@= @@@@@@@@@@@@@@@@.   :@@@@@@.                  
+                     ++++++++++@@@@@@@@@@++++++@@@@@+:@@@@@@@@@@@@@@@@.  +@@@@@@.                   
+                     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%.          +@@@@@+  %@@@@@#         .:          
+   .                 @@@@@@@@@@@@@=. .%@@@@@@@@@@#.           .+@@@@@+ @@@@@@+          .%          
+                                                                                        #%          
+                                                                                      =@@:          
+                                                                     .           ..*@@@@.           
+                                                .=++++= +%#+: .:#@@@%%%####%%@@@@@@@@@@.            
+                                            .-*.=*+===+ =*#%@@@@%-.-@@@@@@@@@@@@@@@@@-              
+                      .       .      .:  -@*+*@@#-@@@@-#@@@@@#=+@@@@:.%@@@@@@@@@@@@+                
+                                    *@@@*-+#+@@@@%%@@*:@@@@@@@@@%+%@@@.:@@@@@@@@@-                  
+     .                           . #@@@+@@@@@@*#*#=*##**#*@@@@@@@@++@@@::@@@@@@:         .          
+                              .*@: @@@=#@@@%***-%@@@@@@@@+%@@@@@@@@#@@@%.@@@#.                      
+                            .#@@@= @@@-=*+#@@@@@+##@@@@@+=*#+=+**++=@@@*.@-                         
+                          .#@@@@@@.%**#@@@@@@@@@@@#=@*@%@@*+*%@@@+#@@+@%.                           
+                        .#@@@%###*%@@@@@@@@@#*+*#%@@@@#%@@@@@%=%=#@@*%@#                            
+                        %*#@@@@@#*@@@@#*#+#@%+=+*#%@@@%=@+=+##*##@@@@%                              
+                        @@@@@@@##@@**%@@@**#**@@@@@@@@@@++@@@@@@*@@@*                               
+                        =@#-. .+%@@@@@@@@@@@%#**-@@@@@@@@=@@@@%+  ..                .               
+                              #%%%@@@@@@@@@@@@@@+@@@@@@@@ -:                                        
+                              #@@@@@@@@@@@@@@@@@+..:::::.                                  .        
+                              .++=-::.....                                                          
+                                                                                                    
+                                                                                                    
+                                                            .                                       
+                                                                                               .    
+                    .                   .                                                           
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+
+"
+
+
+
 SCRIPT=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/bin
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-echo "scriptPath" $SCRIPTPATH
-echo "script" $SCRIPT
 
+# echo "scriptPath" $SCRIPTPATH
+# echo "script" $SCRIPT 
+
+echo "Welcome to the Mrcal Script. Before you proceed, please create a folder to store both the calibration video and the other files"
 
 
 vidPath=''
-echo "Enter Video Path. Video must be the same resolution as your wanted resolution: " 
+echo "Enter the folder path (starting from /mnt/c) where you stored your video" 
 read vidPath
 
-echo "$PWD/$vidPath"
+cd $vidPath
+
+vidName=''
+echo "Enter the name of the video, inclduing extension"
+read vidName
+
+echo $PWD
+
+echo "Is this the directory with your video? press enter to confirm:"
+read 
+
+
 
 echo "monkey"
-echo $vidpath
+echo $vidPath
+echo $vidName
 
-ffmpeg -i $vidPath 'img%04d.png' 
+
+
+ffmpeg -i $vidName 'img%04d.png' 
+
+echo "Done splitting video, starting corner detections"
        
 mrgingham --jobs 4 --gridn 7 '*.png' > corners.vnl 
+
+
 
 < corners.vnl       \
   vnl-filter -p x,y | \
@@ -32,15 +108,16 @@ mrcal-calibrate-cameras         \
   --object-width-n 7           \
   '*.png'
 
-$CAMERAMODEL_NAME = "camera-0.cameramodel"
-read -p "enter the name of the cameramodel file that was generated, INCLUDING the .cameramodel file type (empty for default name)" $CAMERAMODEL_NAME
+JSON_NAME=''
+echo "enter the name of the json file you want: "
+read JSON_NAME
 
 
-read -p "enter the name of the json file you want: " $JSON_NAME
+echo "python3 $SCRIPTPATH/gptCalibUtils.py "camera-0.cameramodel " $JSON_NAME.json"
+read
 
+echo $PWD
+read
 
-
-
-
-python3 $SCRIPTPATH/gptCalibUtils.py $CAMERAMODEL_NAME $JSON_NAME.json
+python3 $SCRIPTPATH/gptCalibUtils.py "$PWD/camera-0.cameramodel" $JSON_NAME.json
 
